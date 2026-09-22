@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Taux d’évolution — Activité</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Charte Stud'Éval : blanc, bleu #2F63F5, bleus très clairs, gris bleutés, encre #0B1526 */
+  --bg:#F4F7FE; --card:#ffffff; --panel:#F0F4FE; --ink:#0B1526; --muted:#56637A; --faint:#8D99AF;
+  --line:#E3E9F4; --line-strong:#CAD5E8;
+  --blue:#2F63F5; --blue-hover:#2552D8; --on-blue:#ffffff; --blue-soft:#EBF1FE; --blue-line:#C6D4FD; --blue-mid:#6091FA;
+  --green:#15834B; --on-green:#ffffff; --green-soft:#E9F7EF; --green-line:#A9DCBF;
+  --red:#C24A40; --red-soft:#FDF1EF; --red-line:#F2C6C0;
+  --shadow:0 1px 2px rgba(11,21,38,.04),0 10px 28px rgba(47,99,245,.07);
+  --sans:"Source Sans 3",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --serif:"Source Serif 4","Cambria","Georgia","Times New Roman",serif;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:18px;line-height:1.55;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+button,input{font-family:inherit}
+.wrap{max-width:840px;margin:0 auto;padding:28px 20px 72px}
+
+/* ---------- En-tête ---------- */
+.top{margin-bottom:22px}
+.top[hidden]{display:none}
+.top-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.brand{font-size:1.15rem;font-weight:700;letter-spacing:-.005em}
+.count{color:var(--muted);font-variant-numeric:tabular-nums;font-size:1rem}
+.count b{color:var(--ink);font-weight:600}
+.bar{height:6px;border-radius:99px;background:var(--blue-soft);overflow:hidden}
+.bar span{display:block;height:100%;width:0;background:var(--blue);border-radius:99px;transition:width .5s ease}
+.parts{list-style:none;padding:0;margin:14px 0 0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.parts li{display:flex;align-items:center;gap:9px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--card);font-size:.84rem;color:var(--muted);line-height:1.25}
+.parts .pn{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line-strong);font-weight:600;font-size:.76rem}
+.parts li.cur{border-color:var(--blue-line);background:var(--blue-soft);color:var(--ink)}
+.parts li.cur .pn{background:var(--blue);border-color:var(--blue);color:var(--on-blue)}
+.parts li.cur{font-weight:600}
+.parts li.fin .pn{background:var(--green-soft);border-color:var(--green-line);color:var(--green)}
+@media (max-width:700px){.parts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ---------- Carte ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:30px 34px}
+@media (max-width:600px){.card{padding:22px 18px}.wrap{padding:18px 12px 56px}body{font-size:17px}}
+.kicker{font-size:.9rem;font-weight:600;color:var(--blue);margin:0}
+h1{font-size:2.1rem;line-height:1.15;letter-spacing:-.02em;margin:6px 0 10px}
+h2{font-size:1.55rem;line-height:1.2;letter-spacing:-.01em;margin:6px 0 18px}
+h3{font-size:1.02rem;font-weight:600;margin:0 0 14px;line-height:1.35}
+h3 .sn{color:var(--blue);font-weight:700;margin-right:.35em}
+p{margin:0 0 12px}
+.lead{font-size:1.14rem;color:var(--ink);margin-bottom:22px}
+.small{font-size:.92rem;color:var(--muted)}
+.enonce{font-size:1.14rem;line-height:1.6;margin:12px 0 0;padding:16px 20px;background:var(--panel);border-radius:10px;border-left:3px solid var(--blue);color:var(--ink)}
+
+/* ---------- Étapes ---------- */
+.step{margin-top:26px;padding-top:22px;border-top:1px solid var(--line)}
+.step.is-done{margin-top:16px;padding-top:14px}
+.done{display:flex;gap:12px;align-items:flex-start}
+.chk{flex:none;width:24px;height:24px;border-radius:50%;background:var(--green-soft);color:var(--green);border:1px solid var(--green-line);display:grid;place-items:center;font-size:.78rem;font-weight:700;margin-top:1px}
+.done-b{min-width:0;flex:1}
+.done-k{font-size:.86rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+.done-v{font-size:1rem}
+.done-note{font-size:.86rem;color:var(--muted);margin-top:4px}
+.hint{font-size:.94rem;color:var(--muted);margin:-4px 0 12px}
+
+.options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:640px){.options{grid-template-columns:1fr}}
+.opt{appearance:none;text-align:left;border:1px solid var(--line-strong);background:var(--card);color:var(--ink);border-radius:10px;padding:13px 16px;font-size:1rem;line-height:1.4;cursor:pointer;transition:border-color .15s,background-color .15s}
+.opt:hover:not(:disabled){border-color:var(--blue);background:var(--blue-soft)}
+.opt:focus-visible{outline:3px solid var(--blue-line);outline-offset:2px}
+.opt.wrong{border-color:var(--red-line);background:var(--red-soft);color:var(--muted);cursor:default}
+.opt:disabled{cursor:default}
+.fopt{display:flex;gap:14px;align-items:flex-start;padding:14px 16px}
+.letter{flex:none;width:28px;height:28px;border-radius:7px;background:var(--blue-soft);color:var(--blue);border:1px solid var(--blue-line);font-weight:700;display:grid;place-items:center;font-size:.9rem;font-family:var(--sans)}
+.opt.wrong .letter{background:transparent;border-color:var(--red-line);color:var(--red)}
+.ftxt{min-width:0;display:block}
+.flhs{display:block;font-weight:600;font-size:.95rem;margin-bottom:4px}
+.frhs{display:block;overflow-x:auto}
+
+.fb:empty{display:none}
+.fb{margin-top:14px}
+.msg{padding:11px 15px;border-radius:9px;font-size:.97rem;line-height:1.5;margin-top:8px}
+.msg:first-child{margin-top:0}
+.msg.err{background:var(--red-soft);border:1px solid var(--red-line);border-left:3px solid var(--red)}
+.msg.help{background:var(--blue-soft);border:1px solid var(--blue-line);border-left:3px solid var(--blue)}
+
+/* ---------- Formules ---------- */
+.fscroll{overflow-x:auto;padding:4px 2px;-webkit-overflow-scrolling:touch}
+.fbox{display:inline-block;white-space:nowrap;font-family:var(--serif);font-size:1.12rem;line-height:1.9;font-variant-numeric:lining-nums}
+.fbox.big{font-size:1.24rem}
+.fbox.hero{font-size:1.3rem}
+.fbox .lhs{font-family:var(--sans);font-weight:600;font-size:.92em}
+.op{margin:0 .34em}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .05em;line-height:1.2;font-size:.94em}
+.frac .num{padding:0 .16em .12em;border-bottom:1.5px solid currentColor}
+.frac .den{padding:.12em .16em 0}
+.paren{display:inline-block;font-weight:400;transform:scaleY(1.7);vertical-align:middle;margin:0 .04em}
+.paren.tall{transform:scaleY(2.25)}
+.formline{margin-bottom:10px}
+@media (max-width:600px){
+  .fbox{font-size:1.02rem}.fbox.big,.fbox.hero{font-size:1.1rem}
+  .fbox .lhs{display:block;line-height:1.5}
+  .fbox .lhs + .op{margin-left:0}
+  .slot{width:5.2em}.slot.sm{width:3.6em}
+}
+.fl-k{display:block;font-size:.86rem;color:var(--muted);font-weight:600;margin-bottom:2px}
+
+.slot{font-family:var(--sans);font-size:1rem;width:6.6em;padding:.3em .45em;text-align:center;border:1.5px solid var(--line-strong);border-radius:7px;background:var(--card);color:var(--ink);font-variant-numeric:tabular-nums;vertical-align:middle;margin:2px 0}
+.slot::placeholder{color:var(--faint);font-style:italic}
+.slot:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+.slot.sm{width:4.4em}
+.slot.lg{width:9.5em;font-size:1.12rem;padding:.4em .6em}
+.slot.good{border-color:var(--green);background:var(--green-soft)}
+.slot.bad{border-color:var(--red);background:var(--red-soft)}
+.slot:disabled{opacity:1;color:var(--ink)}
+.answer{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.answer .lhs{font-weight:600}
+.unit{font-weight:600;font-size:1.05rem}
+
+/* ---------- Boutons ---------- */
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:18px}
+.btn{appearance:none;border:1px solid var(--blue);background:var(--blue);color:var(--on-blue);font-weight:600;font-size:1rem;padding:10px 20px;border-radius:9px;cursor:pointer;transition:background-color .15s,border-color .15s}
+.btn:hover{background:var(--blue-hover);border-color:var(--blue-hover)}
+.btn:focus-visible{outline:3px solid var(--blue-line);outline-offset:2px}
+.btn.ghost{background:transparent;color:var(--blue);border-color:var(--blue-line)}
+.btn.ghost:hover{background:var(--blue-soft)}
+.btn.quiet{background:transparent;color:var(--muted);border-color:var(--line-strong);font-weight:500}
+.btn.quiet:hover{background:var(--panel);color:var(--ink)}
+
+/* ---------- Correction ---------- */
+.corr{margin-top:24px;padding:20px 22px;border-radius:12px;border:1px solid var(--green-line);background:var(--green-soft)}
+.corr.shown{border-color:var(--blue-line);background:var(--blue-soft)}
+.c-head{font-weight:700;color:var(--green);margin-bottom:8px;font-size:1.05rem}
+.corr.shown .c-head{color:var(--blue)}
+.c-lines .fscroll{padding:0 2px}
+.c-phrase{font-weight:600;margin:12px 0 0}
+.c-note{font-size:.92rem;color:var(--muted);margin:8px 0 0}
+
+/* ---------- Introduction ---------- */
+.tscroll{overflow-x:auto;margin:0 0 6px}
+.ftable{width:100%;border-collapse:collapse;min-width:480px}
+.ftable th{text-align:left;font-size:.86rem;color:var(--muted);font-weight:600;padding:8px 14px;border-bottom:1px solid var(--line-strong)}
+.ftable td{padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+.ftable tr.sep td{border-bottom:1px solid var(--line-strong)}
+.ftable td:first-child{font-weight:500}
+.legend{font-size:.9rem;color:var(--muted);margin:8px 0 0}
+.key{margin:24px 0;padding:18px 22px;border-radius:12px;background:var(--blue-soft);border:1px solid var(--blue-line)}
+.key p{margin:0}
+.key strong{display:block;font-size:1.16rem;line-height:1.4;margin-top:4px}
+.key.soft{padding:14px 18px;margin:20px 0}
+.flow{margin:0 0 18px;padding:0;list-style:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;counter-reset:f}
+.flow li{counter-increment:f;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.93rem;line-height:1.35;background:var(--card)}
+.flow li::before{content:counter(f);display:block;font-weight:700;color:var(--blue);margin-bottom:2px}
+@media (max-width:640px){.flow{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ---------- Présentation d'une partie ---------- */
+.prow{display:grid;grid-template-columns:170px minmax(0,1fr);gap:18px;padding:14px 0;border-top:1px solid var(--line)}
+.prow:first-child{border-top:0;padding-top:0}
+.pk{font-weight:600;color:var(--muted);font-size:.95rem;padding-top:2px}
+@media (max-width:600px){.prow{grid-template-columns:1fr;gap:4px}}
+.ex-t{margin-bottom:6px}
+.ex-p{font-weight:600;margin:6px 0 0}
+.warn{margin:10px 0 0;padding:8px 12px;border-left:3px solid var(--red);background:var(--red-soft);border-radius:0 8px 8px 0;font-size:.96rem}
+
+/* ---------- Bilan ---------- */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:6px 0 10px}
+.stat{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--card)}
+.stat .v{font-size:1.7rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+.stat .l{font-size:.88rem;color:var(--muted);line-height:1.3}
+.stat.main{grid-column:1/-1;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;background:var(--blue-soft);border-color:var(--blue-line)}
+.stat.main .v{color:var(--blue)}
+.stat.main .v{font-size:2.2rem}
+.stat.main .l{font-size:1rem;color:var(--ink)}
+@media (max-width:640px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.sect{margin-top:28px;padding-top:22px;border-top:1px solid var(--line)}
+.sect h3{font-size:1.08rem}
+.maprow{display:flex;align-items:center;gap:12px;margin:7px 0;flex-wrap:wrap}
+.maprow .ml{width:5.6em;font-size:.9rem;color:var(--muted)}
+.cells{display:flex;gap:6px}
+.cell{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;font-size:.84rem;font-weight:600;border:1px solid var(--line-strong);color:var(--faint);font-variant-numeric:tabular-nums}
+.cell.p{background:var(--green);border-color:var(--green);color:var(--on-green)}
+.cell.e{background:var(--green-soft);border-color:var(--green-line);color:var(--green)}
+.cell.r{background:var(--red-soft);border-color:var(--red-line);color:var(--red)}
+.legend-row{display:flex;gap:18px;flex-wrap:wrap;font-size:.86rem;color:var(--muted);margin-top:10px}
+.legend-row span{display:inline-flex;align-items:center;gap:6px}
+.legend-row i{width:14px;height:14px;border-radius:4px;display:inline-block;border:1px solid var(--line-strong)}
+.legend-row i.p{background:var(--green);border-color:var(--green)}
+.legend-row i.e{background:var(--green-soft);border-color:var(--green-line)}
+.legend-row i.r{background:var(--red-soft);border-color:var(--red-line)}
+.synth{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:640px){.synth{grid-template-columns:1fr}}
+.sbox{border:1px solid var(--line);border-radius:10px;padding:14px 18px}
+.sbox h4{margin:0 0 8px;font-size:1rem}
+.si{padding:6px 0}
+.si + .si{border-top:1px solid var(--line)}
+.si-k{font-size:.9rem;color:var(--muted)}
+.reflex{margin:0;padding-left:1.4em}
+.reflex li{padding:3px 0}
+
+/* ---------- Mouvement ---------- */
+.reveal{animation:appear .28s ease both}
+@keyframes appear{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.reveal{animation:none}.bar span{transition:none}}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top" id="hdr" hidden>
+    <div class="top-row">
+      <div class="brand">Taux d’évolution</div>
+      <div class="count" id="hdr-count"></div>
+    </div>
+    <div class="bar" id="hdr-bar" role="progressbar" aria-label="Progression" aria-valuemin="0" aria-valuemax="20" aria-valuenow="0"><span></span></div>
+    <ol class="parts" id="hdr-parts"></ol>
+  </header>
+  <main id="app"></main>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* =========================================================
+   UTILITAIRES
+   ========================================================= */
+const NBSP = "\u00a0", NNBSP = "\u202f";
+const $ = (sel, root) => (root || document).querySelector(sel);
+const r2 = x => Math.round((x + Number.EPSILON) * 100) / 100;
+const same = (a, b) => Math.abs(a - b) < 1e-9 * Math.max(1, Math.abs(b));
+
+function typo(s){
+  return String(s)
+    .replace(/(\d) (?=\d{3}\b)/g, "$1" + NNBSP)
+    .replace(/ (%|€|kWh)/g, NBSP + "$1")
+    .replace(/« /g, "«" + NBSP).replace(/ »/g, NBSP + "»")
+    .replace(/ ([?!:;])/g, NBSP + "$1")
+    .replace(/\(1 ([+−]) t\/100\)/g, "(1" + NBSP + "$1" + NBSP + "t/100)");
+}
+function fmt(x, minD){
+  return Number(x).toLocaleString("fr-FR", { minimumFractionDigits: minD || 0, maximumFractionDigits: 4 });
+}
+function fmtVal(x, unite){
+  const v = r2(x);
+  const s = (unite === "€" && !Number.isInteger(v)) ? fmt(v, 2) : fmt(v);
+  return s + NBSP + unite;
+}
+function parseNum(str){
+  let s = String(str).trim().replace(/[\s\u00a0\u202f]/g, "");
+  s = s.replace(/(€|%|kwh|licenciés?)$/i, "");
+  s = s.replace(",", ".");
+  if (!/^[+-]?(\d+(\.\d*)?|\.\d+)$/.test(s)) return NaN;
+  return parseFloat(s);
+}
+function numbersIn(text){
+  return (text.match(/\d+(?:[ \u202f\u00a0]\d{3})*(?:,\d+)?/g) || [])
+    .map(x => parseFloat(x.replace(/[ \u202f\u00a0]/g, "").replace(",", ".")));
+}
+function shuffle(a){
+  a = a.slice();
+  for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
+
+/* =========================================================
+   FORMULES
+   ========================================================= */
+const LHS = { 1:"Valeur finale", 2:"Montant de l’augmentation", 3:"Valeur finale", 4:"Montant de la diminution" };
+const LETTER = { 1:"A", 2:"B", 3:"C", 4:"D" };
+const INTRO_LBL = {
+  1:"Nouvelle valeur après une augmentation",
+  2:"Montant de l’augmentation",
+  3:"Nouvelle valeur après une diminution",
+  4:"Montant de la diminution"
+};
+
+function frac(n, d){ return `<span class="frac"><span class="num">${n}</span><span class="den">${d}</span></span>`; }
+function rhs(cas, vi, t, tall){
+  const P = c => `<span class="paren${tall ? " tall" : ""}">${c}</span>`;
+  const x = `<span class="op">×</span>`;
+  if (cas === 1) return `${vi}${x}${P("(")}1<span class="op">+</span>${frac(t, "100")}${P(")")}`;
+  if (cas === 3) return `${vi}${x}${P("(")}1<span class="op">−</span>${frac(t, "100")}${P(")")}`;
+  return `${vi}${x}${frac(t, "100")}`;
+}
+function eqHTML(lhs, right, cls){
+  return `<div class="fscroll"><span class="fbox ${cls || ""}"><span class="lhs">${lhs}</span><span class="op">=</span>${right}</span></div>`;
+}
+function coef(s){ return s.cas === 1 ? 1 + s.t / 100 : s.cas === 3 ? 1 - s.t / 100 : s.t / 100; }
+function answer(s){ return r2(s.vi * coef(s)); }
+function corrLines(s){
+  const L = LHS[s.cas];
+  return eqHTML(L, rhs(s.cas, fmt(s.vi), fmt(s.t)))
+       + eqHTML(L, `${fmt(s.vi)}<span class="op">×</span>${fmt(coef(s))}`)
+       + eqHTML(L, `<strong>${fmtVal(answer(s), s.unite)}</strong>`);
+}
+
+/* =========================================================
+   LES QUATRE PARTIES
+   ========================================================= */
+const PARTS = [
+  { cas:1, court:"Prix après augmentation", titre:"Valeur finale après une augmentation",
+    cherche:"La nouvelle valeur, une fois l’augmentation appliquée.",
+    expl:"Augmenter une valeur de t %, c’est la multiplier par (1 + t/100). Le résultat obtenu est directement la nouvelle valeur : il n’y a rien à ajouter ensuite.",
+    ex:{ texte:"Un abonnement coûte 40 € et son prix augmente de 5 %. On cherche le nouveau prix.", vi:40, t:5, unite:"€" },
+    exPhrase:"Le nouveau prix de l’abonnement est de 42 €.",
+    attention:"",
+    contraste:"",
+    reperes:"Mots qui signalent une augmentation : augmentation, hausse, majoration, progression, réévaluation." },
+  { cas:2, court:"Montant d’une augmentation", titre:"Montant d’une augmentation",
+    cherche:"Seulement de combien la valeur augmente, et non la nouvelle valeur.",
+    expl:"Le montant de l’augmentation représente t % de la valeur initiale. C’est la somme « en plus » : on ne l’ajoute pas à la valeur de départ, puisque la question ne le demande pas.",
+    ex:{ texte:"Un vélo coûte 800 € et son prix augmente de 4 %. On cherche seulement de combien d’euros il augmente.", vi:800, t:4, unite:"€" },
+    exPhrase:"Le prix du vélo augmente de 32 €.",
+    attention:"Attention : la réponse attendue est 32 €, et non 832 €. 832 € serait le nouveau prix, que l’on ne demande pas.",
+    contraste:"« Quel est le nouveau prix ? » : on cherche une valeur finale. « De combien le prix augmente-t-il ? » : on cherche seulement le montant de l’augmentation.",
+    reperes:"Questions typiques : « De combien augmente-t-il ? », « Quel est le montant de la hausse ? », « Combien paie-t-on en plus ? »" },
+  { cas:3, court:"Prix après diminution", titre:"Valeur finale après une diminution",
+    cherche:"La nouvelle valeur, une fois la diminution appliquée.",
+    expl:"Diminuer une valeur de t %, c’est la multiplier par (1 − t/100). Le résultat obtenu est directement la nouvelle valeur.",
+    ex:{ texte:"Une veste coûte 80 € et bénéficie d’une réduction de 25 %. On cherche son nouveau prix.", vi:80, t:25, unite:"€" },
+    exPhrase:"Le nouveau prix de la veste est de 60 €.",
+    attention:"",
+    contraste:"Par rapport à la partie 1, seul le signe change dans la parenthèse : « + » pour une augmentation, « − » pour une diminution.",
+    reperes:"Mots qui signalent une diminution : baisse, réduction, remise, soldes, promotion." },
+  { cas:4, court:"Montant d’une diminution", titre:"Montant d’une diminution",
+    cherche:"Seulement de combien la valeur diminue, autrement dit la somme économisée.",
+    expl:"Le montant de la diminution représente t % de la valeur initiale. C’est ce que l’on économise, pas ce que l’on paie.",
+    ex:{ texte:"Un téléphone coûte 600 € et bénéficie d’une remise de 15 %. On cherche le montant de la remise.", vi:600, t:15, unite:"€" },
+    exPhrase:"Le montant de la remise est de 90 €.",
+    attention:"Attention : la réponse attendue est 90 €, et non 510 €. 510 € serait le prix après la remise.",
+    contraste:"« Quel est le prix après la remise ? » : on cherche une valeur finale. « Quel est le montant de la remise ? » : on cherche seulement le montant de la diminution.",
+    reperes:"Questions typiques : « Quel est le montant de la remise ? », « Combien économise-t-on ? », « Quelle somme est déduite ? »" }
+];
+
+/* =========================================================
+   LES 20 SITUATIONS
+   nom / evo servent à écrire les propositions de l'étape 1
+   {R} est remplacé par le résultat mis en forme
+   ========================================================= */
+const SITS = [
+  /* ---- Partie 1 : valeur finale après augmentation ---- */
+  { cas:1, vi:300, t:10, unite:"€", nom:"le prix de la console", evo:"l’augmentation",
+    texte:"Une console de jeux coûte 300 €. Son prix augmente de 10 %. Quel est son nouveau prix ?",
+    phrase:"Le nouveau prix de la console est donc de {R}." },
+  { cas:1, vi:20, t:15, unite:"€", nom:"le prix du forfait", evo:"l’augmentation",
+    texte:"Un forfait téléphonique coûte 20 € par mois. L’opérateur augmente son prix de 15 %. Quel est le nouveau prix mensuel du forfait ?",
+    phrase:"Le forfait coûte donc désormais {R} par mois." },
+  { cas:1, vi:750, t:8, unite:"€", nom:"le prix de l’ordinateur", evo:"l’augmentation",
+    texte:"Un ordinateur portable coûte actuellement 750 €. Son prix augmente de 8 %. Quel sera son nouveau prix ?",
+    phrase:"Le nouveau prix de l’ordinateur est donc de {R}." },
+  { cas:1, vi:45, t:7, unite:"€", nom:"le tarif de l’abonnement", evo:"la hausse",
+    texte:"À la suite d’une hausse tarifaire de 7 %, l’abonnement à une salle de sport, actuellement facturé 45 € par mois, va être réévalué. Quel sera son nouveau tarif mensuel ?",
+    phrase:"Le nouveau tarif de l’abonnement est donc de {R} par mois." },
+  { cas:1, vi:620, t:3.5, unite:"€", nom:"le loyer", evo:"l’augmentation",
+    texte:"Julie loue un studio 620 € par mois. Lors de la révision annuelle du bail, son propriétaire applique une augmentation de 3,5 %. Quel loyer Julie paiera-t-elle désormais chaque mois ?",
+    phrase:"Julie paiera donc désormais un loyer de {R} par mois." },
+
+  /* ---- Partie 2 : montant de l'augmentation ---- */
+  { cas:2, vi:90, t:10, unite:"€", nom:"le prix du billet", evo:"l’augmentation",
+    texte:"Un billet de train coûte 90 €. Son prix augmente de 10 %. De combien d’euros le prix du billet augmente-t-il ?",
+    phrase:"Le prix du billet augmente donc de {R}." },
+  { cas:2, vi:150, t:12, unite:"€", nom:"la facture mensuelle", evo:"la hausse",
+    texte:"Une facture d’électricité s’élève à 150 € par mois. Le fournisseur annonce une hausse de 12 %. De combien la facture mensuelle va-t-elle augmenter ?",
+    phrase:"La facture mensuelle augmentera donc de {R}." },
+  { cas:2, vi:1200, t:6, unite:"€", nom:"le prix du séjour", evo:"la hausse",
+    texte:"Une agence propose un séjour d’une semaine à la montagne pour 1 200 €. L’an prochain, ses tarifs augmenteront de 6 %. Quel sera le montant de la hausse pour ce séjour ?",
+    phrase:"La hausse sera donc de {R} pour ce séjour." },
+  { cas:2, vi:85, t:30, unite:"€", nom:"le prix de la nuit", evo:"la majoration",
+    texte:"En basse saison, une nuit dans un hôtel est facturée 85 €. En haute saison, ce tarif est majoré de 30 %. Quelle somme supplémentaire faut-il payer pour une nuit en haute saison ?",
+    phrase:"Il faut donc payer {R} de plus pour une nuit en haute saison." },
+  { cas:2, vi:240, t:15, unite:"licenciés", nom:"le nombre de licenciés", evo:"la hausse",
+    montantLabel:"Uniquement le nombre de licenciés en plus",
+    texte:"Un club de football comptait 240 licenciés la saison dernière. Cette saison, le nombre de licenciés a progressé de 15 %. Combien de licenciés supplémentaires le club compte-t-il cette saison ?",
+    phrase:"Le club compte donc {R} supplémentaires." },
+
+  /* ---- Partie 3 : valeur finale après diminution ---- */
+  { cas:3, vi:90, t:20, unite:"€", nom:"le prix des chaussures", evo:"la réduction",
+    texte:"Une paire de chaussures de sport coûte 90 €. Elle bénéficie d’une réduction de 20 %. Quel est son nouveau prix ?",
+    phrase:"Le nouveau prix des chaussures est donc de {R}." },
+  { cas:3, vi:110, t:30, unite:"€", nom:"le prix de l’abonnement", evo:"la réduction",
+    texte:"Une plateforme de streaming vend son abonnement annuel 110 €. Pendant une semaine, elle le propose avec une réduction de 30 %. Combien coûte l’abonnement annuel pendant cette offre ?",
+    phrase:"Pendant l’offre, l’abonnement annuel coûte donc {R}." },
+  { cas:3, vi:8500, t:6, unite:"€", nom:"le prix de la voiture", evo:"la baisse",
+    texte:"Une voiture d’occasion est affichée à 8 500 €. Après négociation, le vendeur accepte de baisser son prix de 6 %. À quel prix la voiture sera-t-elle finalement vendue ?",
+    phrase:"La voiture sera donc vendue {R}." },
+  { cas:3, vi:4200, t:12, unite:"kWh", nom:"la consommation annuelle", evo:"la baisse",
+    montantLabel:"Uniquement le nombre de kWh économisés",
+    texte:"Un foyer consommait 4 200 kWh d’électricité par an. Après avoir remplacé ses anciens appareils, il réduit sa consommation de 12 %. Quelle est sa nouvelle consommation annuelle ?",
+    phrase:"La nouvelle consommation annuelle du foyer est donc de {R}." },
+  { cas:3, vi:386, t:15, unite:"€", nom:"l’addition", evo:"la remise",
+    texte:"Pour les groupes de plus de 10 personnes, un restaurant accorde une remise de 15 % sur l’addition. Ce soir, l’addition d’un groupe de 12 amis s’élève à 386 €. Combien le groupe paiera-t-il réellement ?",
+    phrase:"Le groupe paiera donc réellement {R}." },
+
+  /* ---- Partie 4 : montant de la diminution ---- */
+  { cas:4, vi:350, t:20, unite:"€", nom:"le prix du smartphone", evo:"la baisse",
+    texte:"Un smartphone coûte 350 €. Son prix baisse de 20 %. De combien d’euros son prix baisse-t-il ?",
+    phrase:"Le prix du smartphone baisse donc de {R}." },
+  { cas:4, vi:65, t:10, unite:"€", nom:"le prix de la place", evo:"la réduction",
+    texte:"Une place de concert coûte 65 €. Les étudiants bénéficient d’une réduction de 10 %. Quel est le montant de cette réduction ?",
+    phrase:"La réduction accordée aux étudiants est donc de {R}." },
+  { cas:4, vi:640, t:15, unite:"€", nom:"le prix du canapé", evo:"la remise",
+    texte:"Une enseigne annonce une remise de 15 % sur un canapé vendu 640 €. Quelle somme le client économise-t-il ?",
+    phrase:"Le client économise donc {R}." },
+  { cas:4, vi:529, t:18, unite:"€", nom:"le prix du lave-linge", evo:"la remise",
+    texte:"Lors d’une opération commerciale, un magasin accorde 18 % de remise sur un lave-linge habituellement vendu 529 €. Quel est le montant de l’économie réalisée par l’acheteur ?",
+    phrase:"L’acheteur réalise donc une économie de {R}." },
+  { cas:4, vi:286, t:25, unite:"€", nom:"le tarif annuel", evo:"la baisse",
+    texte:"Un club d’escalade propose une adhésion annuelle à 286 €. Les personnes qui s’inscrivent avant le 30 septembre bénéficient d’une baisse de 25 % sur ce tarif. Inès s’inscrit le 15 septembre. Quelle somme est déduite de son tarif annuel ?",
+    phrase:"Une somme de {R} est donc déduite du tarif annuel d’Inès." }
+];
+
+function label(s, k){
+  if (k === "initiale") return cap(`${s.nom} avant ${s.evo}`);
+  if (k === "finale")   return cap(`${s.nom} après ${s.evo}`);
+  if (k === "montant")  return s.montantLabel || `Uniquement le montant de ${s.evo}`;
+  return `Le pourcentage de ${s.evo}`;
+}
+const typeOf = cas => (cas === 1 || cas === 3) ? "finale" : "montant";
+
+function compareNote(s){
+  const m = r2(s.vi * s.t / 100);
+  const fin = r2(s.cas <= 2 ? s.vi + m : s.vi - m);
+  if (typeOf(s.cas) === "montant")
+    return `À ne pas confondre : ${s.nom} après ${s.evo} serait de ${fmtVal(fin, s.unite)}. Mais la question porte uniquement sur le montant de ${s.evo}.`;
+  return `Pour comparer : le montant de ${s.evo}, lui, est de ${fmtVal(m, s.unite)}. Mais la question porte sur ${s.nom} après ${s.evo}.`;
+}
+
+/* =========================================================
+   ÉTAT ET SAUVEGARDE
+   ========================================================= */
+const KEY = "taux-evolution-activite-v1";
+function fresh(){
+  return { screen:"intro", idx:0, part:0,
+    results: Array.from({ length:20 }, () => ({ e1:0, e2:0, e3:0, e4:0, aide:false, rev:false, done:false })) };
+}
+function valid(st){
+  return st && Array.isArray(st.results) && st.results.length === 20
+    && typeof st.idx === "number" && st.idx >= 0 && st.idx < 20
+    && typeof st.part === "number" && st.part >= 0 && st.part < 4
+    && ["intro","part","sit","bilan"].includes(st.screen);
+}
+function load(){ try { const raw = localStorage.getItem(KEY); const st = raw ? JSON.parse(raw) : null; return valid(st) ? st : null; } catch(e){ return null; } }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} }
+
+let state = fresh();
+const app = document.getElementById("app");
+
+/* =========================================================
+   EN-TÊTE
+   ========================================================= */
+function header(mode){
+  const hdr = document.getElementById("hdr");
+  if (!mode){ hdr.hidden = true; return; }
+  hdr.hidden = false;
+  const doneCount = state.results.filter(r => r.done).length;
+  let count;
+  if (mode.type === "sit") count = `Situation <b>${mode.idx + 1}</b> / 20`;
+  else if (mode.type === "part") count = `Partie <b>${mode.p + 1}</b> sur 4`;
+  else count = `<b>Bilan</b>`;
+  $("#hdr-count").innerHTML = count;
+  const bar = $("#hdr-bar");
+  bar.setAttribute("aria-valuenow", doneCount);
+  bar.firstElementChild.style.width = (doneCount / 20 * 100) + "%";
+  const cur = mode.type === "sit" ? Math.floor(mode.idx / 5) : mode.type === "part" ? mode.p : -1;
+  $("#hdr-parts").innerHTML = PARTS.map((P, k) => {
+    const fin = state.results.slice(k * 5, k * 5 + 5).every(r => r.done);
+    const cls = [k === cur ? "cur" : "", fin && k !== cur ? "fin" : ""].join(" ").trim();
+    return `<li class="${cls}"${k === cur ? ' aria-current="step"' : ""}><span class="pn">${fin && k !== cur ? "✓" : k + 1}</span><span>${P.court}</span></li>`;
+  }).join("");
+}
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+function route(){
+  if (state.screen === "part") renderPart(state.part);
+  else if (state.screen === "sit"){
+    if (state.results[state.idx].done){ advance(state.idx); return; }
+    renderSituation(state.idx);
+  }
+  else if (state.screen === "bilan") renderBilan();
+  else renderIntro(null);
+  window.scrollTo(0, 0);
+}
+function advance(i){
+  if (i >= 19){ state.screen = "bilan"; }
+  else if ((i + 1) % 5 === 0){ state.screen = "part"; state.part = (i + 1) / 5; state.idx = i + 1; }
+  else { state.screen = "sit"; state.idx = i + 1; }
+  save(); route();
+}
+function startOver(){
+  state = fresh(); state.screen = "part"; state.part = 0; save(); route();
+}
+
+/* =========================================================
+   ÉCRAN D'INTRODUCTION
+   ========================================================= */
+function renderIntro(saved){
+  header(null);
+  const rows = [1,2,3,4].map(c =>
+    `<tr${c === 2 ? ' class="sep"' : ""}><td>${INTRO_LBL[c]}</td><td><span class="fbox">${rhs(c, "VI", "t")}</span></td></tr>`
+  ).join("");
+  const has = saved && saved.screen !== "intro";
+  let resumeLbl = "";
+  if (has){
+    resumeLbl = saved.screen === "bilan" ? "Revoir le bilan"
+      : saved.screen === "part" ? `Reprendre à la partie ${saved.part + 1}`
+      : `Reprendre à la situation ${saved.idx + 1} / 20`;
+  }
+  app.innerHTML = `
+  <article class="card reveal">
+    <p class="kicker">Activité sur ordinateur, environ une heure</p>
+    <h1>Taux d’évolution</h1>
+    <p class="lead">Aujourd’hui, tu vas apprendre à choisir la bonne méthode selon ce que l’on te demande.</p>
+    <div class="tscroll">
+      <table class="ftable">
+        <thead><tr><th>Ce que l’on cherche</th><th>Formule</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <p class="legend">${typo("VI : valeur initiale, c’est-à-dire la valeur de départ. t : taux d’évolution, en %.")}</p>
+    <div class="key">
+      <p>${typo("Avant de calculer, pose-toi toujours cette question :")}</p>
+      <strong>${typo("Est-ce que je cherche la valeur finale ou seulement le montant de l’évolution ?")}</strong>
+    </div>
+    <h3>À chaque situation, tu devras :</h3>
+    <ol class="flow">
+      <li>Dire ce que l’on cherche</li>
+      <li>Choisir la formule</li>
+      <li>Remplacer les lettres par les données</li>
+      <li>Calculer et répondre</li>
+    </ol>
+    <p class="small">${typo("20 situations en 4 parties. Calculatrice autorisée. Ta progression est enregistrée dans ce navigateur.")}</p>
+    <div class="actions">
+      ${has
+        ? `<button type="button" class="btn" id="resume">${resumeLbl}</button><button type="button" class="btn ghost" id="start">Recommencer depuis le début</button>`
+        : `<button type="button" class="btn" id="start">Commencer l’activité</button>`}
+    </div>
+  </article>`;
+  $("#start").addEventListener("click", startOver);
+  if (has) $("#resume").addEventListener("click", () => { state = saved; route(); });
+}
+
+/* =========================================================
+   PRÉSENTATION D'UNE PARTIE
+   ========================================================= */
+function renderPart(p){
+  const P = PARTS[p];
+  header({ type:"part", p });
+  const ex = Object.assign({ cas:P.cas }, P.ex);
+  app.innerHTML = `
+  <article class="card reveal">
+    <p class="kicker">Partie ${p + 1} sur 4, situations ${p * 5 + 1} à ${p * 5 + 5}</p>
+    <h2>${P.titre}</h2>
+    <div class="prow"><div class="pk">Ce que l’on cherche</div><div>${typo(P.cherche)}</div></div>
+    <div class="prow"><div class="pk">La formule</div><div>${eqHTML(LHS[P.cas], rhs(P.cas, "Valeur initiale", "t"), "big")}</div></div>
+    <div class="prow"><div class="pk">En clair</div><div>${typo(P.expl)}</div></div>
+    <div class="prow"><div class="pk">Exemple</div><div>
+      <p class="ex-t">${typo(P.ex.texte)}</p>
+      ${corrLines(ex)}
+      <p class="ex-p">${typo(P.exPhrase)}</p>
+      ${P.attention ? `<p class="warn">${typo(P.attention)}</p>` : ""}
+    </div></div>
+    ${P.contraste ? `<div class="key soft"><p>${typo(P.contraste)}</p></div>` : ""}
+    <p class="small">${typo(P.reperes)}</p>
+    <div class="actions"><button type="button" class="btn" id="go">Commencer la partie ${p + 1}</button></div>
+  </article>`;
+  $("#go").addEventListener("click", () => { state.screen = "sit"; state.idx = p * 5; save(); route(); });
+}
+
+/* =========================================================
+   UNE SITUATION
+   ========================================================= */
+function renderSituation(i){
+  const s = SITS[i], r = state.results[i], L = LHS[s.cas];
+  const expected = typeOf(s.cas);
+  const opts = shuffle(["initiale", "finale", "montant", "taux"]);
+  let t3 = 0, t4 = 0;
+
+  header({ type:"sit", idx:i });
+  app.innerHTML = `
+  <article class="card reveal">
+    <p class="kicker">Situation ${i + 1}</p>
+    <p class="enonce">${typo(s.texte)}</p>
+    <section class="step" id="st1"></section>
+    <section class="step" id="st2" hidden></section>
+    <section class="step" id="st3" hidden></section>
+    <section class="step" id="st4" hidden></section>
+    <div id="corr"></div>
+  </article>`;
+  const st1 = $("#st1"), st2 = $("#st2"), st3 = $("#st3"), st4 = $("#st4"), corr = $("#corr");
+
+  function markDone(el, k, html){
+    el.classList.add("is-done");
+    el.innerHTML = `<div class="done reveal"><span class="chk" aria-hidden="true">✓</span><div class="done-b"><div class="done-k">${k}</div><div class="done-v">${html}</div></div></div>`;
+  }
+  function open(el){
+    el.hidden = false; el.classList.add("reveal");
+    setTimeout(() => el.scrollIntoView({ behavior:"smooth", block:"nearest" }), 60);
+  }
+  function say(el, html){ el.querySelector(".fb").innerHTML = html; }
+
+  /* ---------- Étape 1 : ce que l'on cherche ---------- */
+  st1.innerHTML = `
+    <h3><span class="sn">Étape 1</span>Qu’est-ce qu’on cherche ?</h3>
+    <div class="options">${opts.map(k => `<button type="button" class="opt" data-k="${k}">${typo(label(s, k))}</button>`).join("")}</div>
+    <div class="fb" aria-live="polite"></div>`;
+  st1.querySelectorAll(".opt").forEach(b => b.addEventListener("click", () => {
+    const k = b.dataset.k;
+    if (k === expected){
+      markDone(st1, "Étape 1 · Ce que l’on cherche", typo(label(s, k)));
+      step2(); return;
+    }
+    b.classList.add("wrong"); b.disabled = true; r.e1++; save();
+    let m;
+    if (k === "initiale") m = "Cette valeur est déjà donnée dans l’énoncé : on la connaît. Relis la question : que doit-on calculer ?";
+    else if (k === "taux") m = "Le pourcentage est déjà donné dans l’énoncé. Relis la question : que doit-on calculer ?";
+    else m = "Relis la question : cherche-t-on la nouvelle valeur, ou seulement le montant de l’évolution ?";
+    say(st1, `<div class="msg err">${typo(m)}</div>`);
+  }));
+
+  /* ---------- Étape 2 : choix de la formule ---------- */
+  function step2(){
+    st2.innerHTML = `
+      <h3><span class="sn">Étape 2</span>Choisis la bonne formule</h3>
+      <div class="options">${[1,2,3,4].map(c => `
+        <button type="button" class="opt fopt" data-c="${c}">
+          <span class="letter">${LETTER[c]}</span>
+          <span class="ftxt"><span class="flhs">${LHS[c]}</span><span class="frhs"><span class="fbox"><span class="op" style="margin-left:0">=</span>${rhs(c, "Valeur initiale", "t")}</span></span></span>
+        </button>`).join("")}</div>
+      <div class="fb" aria-live="polite"></div>`;
+    open(st2);
+    st2.querySelectorAll(".opt").forEach(b => b.addEventListener("click", () => {
+      const c = +b.dataset.c;
+      if (c === s.cas){
+        markDone(st2, `Étape 2 · Formule ${LETTER[c]}`, eqHTML(LHS[c], rhs(c, "Valeur initiale", "t")));
+        step3(); return;
+      }
+      b.classList.add("wrong"); b.disabled = true; r.e2++; save();
+      let m;
+      if (typeOf(c) !== expected){
+        m = (typeOf(c) === "finale"
+          ? "Cette formule donne la nouvelle valeur, une fois l’évolution appliquée."
+          : "Cette formule donne seulement le montant de l’évolution.")
+          + " Relis la question : cherche-t-on la nouvelle valeur, ou seulement le montant de l’évolution ?";
+      } else {
+        m = "Le type de résultat est le bon. Mais relis l’énoncé : la valeur augmente-t-elle ou diminue-t-elle ?";
+      }
+      say(st2, `<div class="msg err">${typo(m)}</div>`);
+    }));
+  }
+
+  /* ---------- Étape 3 : remplacer les données ---------- */
+  function slot(id, ph, aria, cls){
+    return `<input id="in-${id}" class="slot ${cls || ""}" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="${ph}" aria-label="${aria}">`;
+  }
+  function step3(){
+    st3.innerHTML = `
+      <h3><span class="sn">Étape 3</span>Remplace les lettres par les données de l’énoncé</h3>
+      <div class="formline"><span class="fl-k">La formule</span>${eqHTML(L, rhs(s.cas, "Valeur initiale", "t"))}</div>
+      <div class="formline"><span class="fl-k">Complète avec les nombres de l’énoncé</span>${eqHTML(L, rhs(s.cas, slot("vi", "VI", "Valeur initiale"), slot("t", "t", "Taux t, en pourcentage", "sm"), true), "big")}</div>
+      <div class="actions"><button type="button" class="btn" id="ok3">Valider</button><span id="rev3"></span></div>
+      <div class="fb" aria-live="polite"></div>`;
+    open(st3);
+    const inVI = $("#in-vi"), inT = $("#in-t");
+    setTimeout(() => inVI.focus({ preventScroll:true }), 300);
+    [inVI, inT].forEach(inp => inp.addEventListener("input", () => inp.classList.remove("bad", "good")));
+    inVI.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); if (!inT.value.trim()) inT.focus(); else check(); } });
+    inT.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); check(); } });
+    $("#ok3").addEventListener("click", check);
+
+    function check(){
+      const va = inVI.value.trim(), vb = inT.value.trim();
+      if (!va || !vb){
+        say(st3, `<div class="msg err">Complète les deux cases avant de valider.</div>`);
+        (va ? inT : inVI).focus(); return;
+      }
+      const a = parseNum(va), b = parseNum(vb);
+      if (isNaN(a) || isNaN(b)){
+        say(st3, `<div class="msg err">${typo("Écris uniquement des nombres dans les cases (par exemple 750 ou 3,5).")}</div>`); return;
+      }
+      const okA = same(a, s.vi), okB = same(b, s.t);
+      inVI.classList.toggle("good", okA); inVI.classList.toggle("bad", !okA);
+      inT.classList.toggle("good", okB);  inT.classList.toggle("bad", !okB);
+      if (okA && okB){ finish(false); return; }
+
+      r.e3++; t3++; save();
+      const nums = numbersIn(s.texte);
+      const lines = [];
+      if (same(a, s.t) && same(b, s.vi)){
+        lines.push("Les deux nombres sont inversés. Dans la formule, la valeur initiale se place devant le signe ×, et le pourcentage t au-dessus de 100.");
+      } else {
+        if (!okA){
+          lines.push(nums.some(n => same(n, a))
+            ? `Valeur initiale : ${fmt(a)} figure bien dans l’énoncé, mais ce n’est pas la valeur de départ. Quelle est la valeur avant ${s.evo} ?`
+            : `Valeur initiale : ce n’est pas la bonne valeur. Cherche dans l’énoncé la valeur avant ${s.evo}.`);
+        }
+        if (!okB){
+          if (same(b, s.t / 100))
+            lines.push("Taux t : écris le pourcentage tel qu’il apparaît dans l’énoncé, sans le diviser. La division par 100 est déjà dans la formule.");
+          else if (same(b, 1 + s.t / 100) || same(b, 1 - s.t / 100))
+            lines.push("Taux t : on attend seulement le pourcentage, pas le coefficient multiplicateur.");
+          else if (nums.some(n => same(n, b)))
+            lines.push(`Taux t : ${fmt(b)} figure bien dans l’énoncé, mais ce n’est pas le pourcentage d’évolution.`);
+          else
+            lines.push("Taux t : ce n’est pas le bon nombre. Cherche dans l’énoncé le pourcentage d’évolution.");
+        }
+      }
+      say(st3, `<div class="msg err">${lines.map(typo).join("<br>")}</div>`);
+      if (t3 >= 3 && !$("#rev3btn")){
+        $("#rev3").innerHTML = `<button type="button" class="btn quiet" id="rev3btn">Afficher les bonnes valeurs</button>`;
+        $("#rev3btn").addEventListener("click", () => { r.aide = true; save(); finish(true); });
+      }
+    }
+    function finish(revealed){
+      markDone(st3, "Étape 3 · La formule avec les données de l’énoncé",
+        eqHTML(L, rhs(s.cas, fmt(s.vi), fmt(s.t)), "hero")
+        + (revealed ? `<div class="done-note">Valeurs affichées après plusieurs essais. Repère-les dans l’énoncé avant de continuer.</div>` : ""));
+      step4();
+    }
+  }
+
+  /* ---------- Étape 4 : calcul ---------- */
+  function diagnose(v){
+    const vi = s.vi, t = s.t, m = vi * t / 100, up = vi + m, dn = vi - m;
+    const near = x => Math.abs(v - r2(x)) <= 0.011;
+    const apres = `${s.nom} après ${s.evo}`;
+    if (s.cas === 1 || s.cas === 3){
+      const sg = s.cas === 1 ? "+" : "−";
+      if (near(m)) return `Ce nombre correspond seulement au montant de ${s.evo}. Or la formule donne directement ${apres}. Vérifie que tu as bien calculé la parenthèse (1 ${sg} ${fmt(t)}/100) avant de multiplier.`;
+      if (s.cas === 1 && near(dn)) return "Ce résultat correspond à une diminution. Vérifie le signe dans la parenthèse : ici, la valeur augmente.";
+      if (s.cas === 3 && near(up)) return "Ce résultat correspond à une augmentation. Vérifie le signe dans la parenthèse : ici, la valeur diminue.";
+      if (near(vi * (1 + t)) || near(vi * (1 - t))) return `Il semble que tu aies oublié de diviser ${fmt(t)} par 100.`;
+      if (near(vi + t / 100) || near(vi - t / 100)) return "Attention à l’ordre des calculs : le calcul entre parenthèses se fait en premier. Sur la calculatrice, tape bien les parenthèses.";
+      if (near(vi + t) || near(vi - t)) return s.cas === 1
+        ? "On n’ajoute pas le pourcentage directement à la valeur. Applique la formule."
+        : "On ne retire pas le pourcentage directement à la valeur. Applique la formule.";
+    } else {
+      if (near(s.cas === 2 ? up : dn)) return `Ce nombre correspond à ${apres}. Or la question demande uniquement le montant de ${s.evo}.`;
+      if (near(vi * t)) return "Il semble que tu aies oublié de diviser par 100.";
+      if (near(vi + t) || near(vi - t) || near(t)) return "Ce n’est pas le calcul de la formule. Multiplie la valeur initiale par t/100.";
+    }
+    const ans = answer(s);
+    if (Math.abs(v - ans) < Math.max(1, Math.abs(ans) * 0.01))
+      return `Tu es très proche. Vérifie ton calcul et donne le résultat exact${s.unite === "€" ? ", au centime près" : ""}.`;
+    return null;
+  }
+  function helpText(){
+    const c = fmt(coef(s));
+    if (s.cas === 1 || s.cas === 3)
+      return `Aide : calcule d’abord la parenthèse, 1 ${s.cas === 1 ? "+" : "−"} ${fmt(s.t)}/100 = ${c}. Il reste ensuite à multiplier ${fmt(s.vi)} par ${c}.`;
+    return `Aide : ${fmt(s.t)}/100 = ${c}. Il reste ensuite à multiplier ${fmt(s.vi)} par ${c}.`;
+  }
+  function step4(){
+    st4.innerHTML = `
+      <h3><span class="sn">Étape 4</span>Effectue maintenant le calcul</h3>
+      <p class="hint">${typo("Calculatrice autorisée. Tu peux écrire la virgule ou le point.")}</p>
+      <div class="answer">
+        <span class="lhs">${L}</span><span>=</span>
+        <input id="in-r" class="slot lg" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="Résultat du calcul">
+        <span class="unit">${s.unite}</span>
+      </div>
+      <div class="actions" id="act4"><button type="button" class="btn" id="ok4">Valider</button><span id="rev4"></span></div>
+      <div class="fb" aria-live="polite"></div>`;
+    open(st4);
+    const inR = $("#in-r");
+    setTimeout(() => inR.focus({ preventScroll:true }), 300);
+    inR.addEventListener("input", () => inR.classList.remove("bad"));
+    inR.addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); check(); } });
+    $("#ok4").addEventListener("click", check);
+
+    function check(){
+      const raw = inR.value.trim();
+      if (!raw){ say(st4, `<div class="msg err">Saisis ton résultat avant de valider.</div>`); inR.focus(); return; }
+      const v = parseNum(raw);
+      if (isNaN(v)){ say(st4, `<div class="msg err">${typo("Écris uniquement un nombre (par exemple 48,15).")}</div>`); return; }
+      if (Math.abs(v - answer(s)) <= 0.011){
+        inR.classList.add("good"); inR.disabled = true;
+        $("#act4").remove(); say(st4, "");
+        r.done = true; save(); header({ type:"sit", idx:i });
+        showCorrection(false); return;
+      }
+      r.e4++; t4++; save();
+      inR.classList.add("bad");
+      const d = diagnose(v);
+      let first;
+      if (d) first = d;
+      else if (t4 === 1) first = (s.cas === 1 || s.cas === 3)
+        ? "Ce n’est pas le bon résultat. Refais le calcul à la calculatrice, en commençant par la parenthèse."
+        : "Ce n’est pas le bon résultat. Refais le calcul à la calculatrice.";
+      else first = "Ce n’est toujours pas le bon résultat.";
+      let html = `<div class="msg err">${typo(first)}</div>`;
+      if (t4 >= 2) html += `<div class="msg help">${typo(helpText())}</div>`;
+      say(st4, html);
+      if (t4 >= 3 && !$("#rev4btn")){
+        $("#rev4").innerHTML = `<button type="button" class="btn quiet" id="rev4btn">Voir la correction</button>`;
+        $("#rev4btn").addEventListener("click", () => {
+          inR.disabled = true; $("#act4").remove(); say(st4, "");
+          r.rev = true; r.done = true; save(); header({ type:"sit", idx:i });
+          showCorrection(true);
+        });
+      }
+    }
+  }
+
+  /* ---------- Correction ---------- */
+  function showCorrection(revealed){
+    const phrase = typo(s.phrase).replace("{R}", fmtVal(answer(s), s.unite));
+    corr.innerHTML = `
+      <div class="corr ${revealed ? "shown" : ""} reveal" role="status">
+        <div class="c-head">${revealed ? "Correction" : "✓ Bonne réponse"}</div>
+        <div class="c-lines">${corrLines(s)}</div>
+        <p class="c-phrase">${phrase}</p>
+        <p class="c-note">${typo(compareNote(s))}</p>
+        <div class="actions"><button type="button" class="btn" id="next">${i === 19 ? "Voir le bilan →" : "Situation suivante →"}</button></div>
+      </div>`;
+    const nb = $("#next");
+    nb.addEventListener("click", () => advance(i));
+    setTimeout(() => { corr.scrollIntoView({ behavior:"smooth", block:"nearest" }); nb.focus({ preventScroll:true }); }, 80);
+  }
+}
+
+/* =========================================================
+   BILAN
+   ========================================================= */
+let confirmReset = false;
+function renderBilan(){
+  header({ type:"bilan" });
+  confirmReset = false;
+  const R = state.results;
+  const sum = k => R.reduce((a, r) => a + r[k], 0);
+  const errs = r => r.e1 + r.e2 + r.e3 + r.e4;
+  const ok = R.filter(r => r.done && !r.rev).length;
+  const perfect = R.filter(r => r.done && !r.rev && !r.aide && errs(r) === 0).length;
+  const E = { e1:sum("e1"), e2:sum("e2"), e3:sum("e3"), e4:sum("e4") };
+  const tot = E.e1 + E.e2 + E.e3 + E.e4;
+  const pl = n => n > 1 ? "erreurs" : "erreur";
+  const cats = [
+    { k:"e1", nom:"identifier ce que l’on cherche", conseil:"Avant tout calcul, relis la question et demande-toi : la valeur finale, ou seulement le montant de l’évolution ?" },
+    { k:"e2", nom:"choisir la formule", conseil:"Une fois la question comprise, repère si la valeur augmente ou diminue : c’est ce qui départage les formules." },
+    { k:"e3", nom:"remplacer les données", conseil:"Repère la valeur de départ et le pourcentage dans l’énoncé, puis place chacun à l’endroit de sa lettre." },
+    { k:"e4", nom:"effectuer le calcul", conseil:"Tape le calcul avec les parenthèses et vérifie que le résultat est cohérent : plus grand qu’au départ après une augmentation, plus petit après une diminution." }
+  ];
+  let conseil;
+  if (tot === 0) conseil = "Aucune erreur sur l’ensemble de l’activité : la méthode est acquise.";
+  else {
+    const worst = cats.reduce((a, c) => E[c.k] > E[a.k] ? c : a);
+    conseil = `Étape où tu as fait le plus d’erreurs : <strong>${worst.nom}</strong>. ${worst.conseil}`;
+  }
+  const cellTitle = (r, j) => {
+    if (!r.done) return `Situation ${j + 1} : non faite`;
+    if (r.rev) return `Situation ${j + 1} : correction affichée`;
+    const d = [];
+    if (r.e1) d.push(`${r.e1} sur ce que l’on cherche`);
+    if (r.e2) d.push(`${r.e2} de formule`);
+    if (r.e3) d.push(`${r.e3} de remplacement`);
+    if (r.e4) d.push(`${r.e4} de calcul`);
+    if (r.aide) d.push("valeurs affichées");
+    return `Situation ${j + 1} : ` + (d.length ? "réussie, erreurs : " + d.join(", ") : "réussie sans erreur");
+  };
+  const cell = (r, j) => {
+    const cls = !r.done ? "" : r.rev ? "r" : (r.aide || errs(r) > 0) ? "e" : "p";
+    return `<span class="cell ${cls}" title="${cellTitle(r, j)}">${j + 1}</span>`;
+  };
+  const map = PARTS.map((P, k) =>
+    `<div class="maprow"><span class="ml">Partie ${k + 1}</span><span class="cells">${R.slice(k * 5, k * 5 + 5).map((r, j) => cell(r, k * 5 + j)).join("")}</span><span class="small" style="margin:0">${P.court}</span></div>`
+  ).join("");
+
+  app.innerHTML = `
+  <article class="card reveal">
+    <p class="kicker">Fin de l’activité</p>
+    <h2>Bilan</h2>
+    <div class="stats">
+      <div class="stat main"><span class="v">${ok} / 20</span><span class="l">${ok > 1 ? "situations réussies" : "situation réussie"}, dont ${perfect} sans aucune erreur</span></div>
+      <div class="stat"><div class="v">${E.e1}</div><div class="l">${pl(E.e1)} sur ce que l’on cherche</div></div>
+      <div class="stat"><div class="v">${E.e2}</div><div class="l">${pl(E.e2)} de choix de formule</div></div>
+      <div class="stat"><div class="v">${E.e3}</div><div class="l">${pl(E.e3)} de remplacement des données</div></div>
+      <div class="stat"><div class="v">${E.e4}</div><div class="l">${pl(E.e4)} de calcul</div></div>
+    </div>
+    <p style="margin-top:16px">${typo(conseil)}</p>
+
+    <div class="sect">
+      <h3>Détail par situation</h3>
+      ${map}
+      <div class="legend-row">
+        <span><i class="p"></i>réussie sans erreur</span>
+        <span><i class="e"></i>réussie après erreur</span>
+        <span><i class="r"></i>correction affichée</span>
+      </div>
+    </div>
+
+    <div class="sect">
+      <h3>Ce qu’il faut retenir</h3>
+      <div class="synth">
+        <div class="sbox">
+          <h4>Si la valeur augmente</h4>
+          <div class="si"><div class="si-k">Nouvelle valeur</div><span class="fbox">${rhs(1, "VI", "t")}</span></div>
+          <div class="si"><div class="si-k">Montant de l’augmentation</div><span class="fbox">${rhs(2, "VI", "t")}</span></div>
+        </div>
+        <div class="sbox">
+          <h4>Si la valeur diminue</h4>
+          <div class="si"><div class="si-k">Nouvelle valeur</div><span class="fbox">${rhs(3, "VI", "t")}</span></div>
+          <div class="si"><div class="si-k">Montant de la diminution</div><span class="fbox">${rhs(4, "VI", "t")}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sect">
+      <h3>Le réflexe à garder</h3>
+      <ol class="reflex">
+        <li>Je lis la question.</li>
+        <li>Je détermine ce que je cherche : la valeur finale, ou seulement le montant de l’évolution.</li>
+        <li>Je choisis la formule.</li>
+        <li>Je remplace les lettres par les données de l’énoncé.</li>
+        <li>Je calcule.</li>
+        <li>Je réponds par une phrase, avec l’unité.</li>
+      </ol>
+    </div>
+
+    <div class="actions"><button type="button" class="btn ghost" id="again">Recommencer l’activité</button></div>
+  </article>`;
+
+  const again = $("#again");
+  again.addEventListener("click", () => {
+    if (!confirmReset){
+      confirmReset = true;
+      again.textContent = "Confirmer : effacer ce bilan et recommencer";
+      again.classList.remove("ghost");
+      return;
+    }
+    state = fresh(); save(); renderIntro(null); window.scrollTo(0, 0);
+  });
+}
+
+/* =========================================================
+   DÉMARRAGE
+   ========================================================= */
+renderIntro(load());
+})();
+</script>
+</body>
+</html>
